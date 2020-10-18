@@ -19,6 +19,9 @@ struct ContentView: View {
     @State private var showingAddTodoView: Bool     = false
     @State private var animatingButton: Bool        = false
     
+    @ObservedObject var theme   = ThemeSettings.shared
+    var themes: [Theme]         = themeData
+    
     // MARK: - BODY
     var body: some View {
         NavigationView {
@@ -26,16 +29,28 @@ struct ContentView: View {
                 List {
                     ForEach(self.todos, id: \.self) { todo in
                         HStack {
+                            Circle()
+                                .frame(width: 12, height: 12, alignment: .center)
+                                .foregroundColor(self.colorize(priority: todo.priority ?? "Normal"))
                             Text(todo.name ?? "Unknown")
+                                .fontWeight(.semibold)
                             Spacer()
                             Text(todo.priority ?? "Unknown")
-                        }
+                                .font(.footnote)
+                                .foregroundColor(Color(UIColor.systemGray2))
+                                .padding(3)
+                                .frame(minWidth: 62)
+                                .overlay(
+                                    Capsule().stroke(Color(UIColor.systemGray2), lineWidth: 0.75)
+                                )
+                        } //: HSTACK
+                        .padding(.vertical, 10)
                     } //: FOREACH
                     .onDelete(perform: deleteTodo)
                 } //: LIST
                 .navigationBarTitle("Todo", displayMode: .inline)
                 .navigationBarItems(
-                    leading: EditButton(),
+                    leading: EditButton().accentColor(themes[self.theme.themeSettings].themeColor),
                     trailing:
                         Button(action: {
                             self.showingSettingsView.toggle()
@@ -43,6 +58,7 @@ struct ContentView: View {
                             Image(systemName: "paintbrush")
                                 .imageScale(.large)
                         } // ADD BUTTON
+                        .accentColor(themes[self.theme.themeSettings].themeColor)
                         .sheet(isPresented: $showingSettingsView) {
                             SettingsView().environmentObject(self.iconSettings)
                         }
@@ -59,13 +75,13 @@ struct ContentView: View {
                 ZStack {
                     Group {
                         Circle()
-                            .fill(Color.blue)
+                            .fill(themes[self.theme.themeSettings].themeColor)
                             .opacity(self.animatingButton ? 0.2 : 0)
                             .scaleEffect(self.animatingButton ? 1 : 0)
                             .frame(width: 68, height: 68, alignment: .center)
                         
                         Circle()
-                            .fill(Color.blue)
+                            .fill(themes[self.theme.themeSettings].themeColor)
                             .opacity(self.animatingButton ? 0.15 : 0)
                             .scaleEffect(self.animatingButton ? 1 : 0)
                             .frame(width: 88, height: 88, alignment: .center)
@@ -80,6 +96,7 @@ struct ContentView: View {
                             .background(Circle().fill(Color("ColorBase")))
                             .frame(width: 48, height: 48, alignment: .center)
                     } //: BUTTON
+                    .accentColor(themes[self.theme.themeSettings].themeColor)
                     .onAppear {
                         withAnimation(Animation.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
                             animatingButton.toggle()
@@ -92,6 +109,7 @@ struct ContentView: View {
                 , alignment: .bottomTrailing
             )
         } //: NAVIGATION VIEW
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     // MARK: - FUNCTIONS
@@ -104,6 +122,18 @@ struct ContentView: View {
             } catch {
                 print(error)
             }
+        }
+    }
+    private func colorize(priority: String) -> Color {
+        switch priority {
+        case "High":
+            return .pink
+        case "Normal":
+            return .green
+        case "Low":
+            return .blue
+        default:
+            return .gray
         }
     }
 }
