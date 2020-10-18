@@ -40,7 +40,7 @@ struct AddTodoView: View {
                     // MARK: - SAVE BUTTON
                     Button(action: {
                         if self.name != "" {
-                            let todo = TodoEnt(context: self.managedObjectContext)
+                            let todo = TodoObj(context: self.managedObjectContext)
                             todo.name       = self.name
                             todo.priority   = self.priority
                             
