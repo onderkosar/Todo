@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AddTodoView: View {
     // MARK: - PROPERTIES
+    @Environment(\.managedObjectContext) var managedObjectContext
     @Environment(\.presentationMode) var presentationMode
     
     @State private var name: String         = ""
@@ -34,7 +35,19 @@ struct AddTodoView: View {
                     
                     // MARK: - SAVE BUTTON
                     Button(action: {
-                        print("Save a new todo item.")
+                        if self.name != "" {
+                            let todo = TodoEnt(context: self.managedObjectContext)
+                            todo.name       = self.name
+                            todo.priority   = self.priority
+                            
+                            do {
+                                try self.managedObjectContext.save()
+                                print("New todo: \(todo.name ?? ""), Priority: \(todo.priority ?? "")")
+                            } catch {
+                                print(error)
+                            }
+                        }
+                        
                     }) {
                         Text("Save")
                     } //: SAVE BUTTON
